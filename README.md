@@ -64,3 +64,99 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 # Integrating Angular Universal
 
 ng add @nguniversal/express-engine
+
+Thus, an Angular Universal application generates two versions of the same Angular application, one for the 'server' inside server folder and another for the 'browser' in browser folder.
+
+
+server.ts: This contains the Node.js Express application that will host the server-side-rendered version of our portfolio application.
+main.server.ts: This is the main entry point of our Angular Universal application.
+app.server.module.ts: This is the main application module of the server-side-rendered application.
+tsconfig.server.json: This is the TypeScript configuration for our Angular Universal application.
+
+Global JavaScript objects such as window and document are unavailable when rendering an Angular application in the server because there is no browser. Angular provides abstraction APIs for some objects, such as the DOCUMENT injection token. If you need to enable them conditionally, you can inject the PLATFORM_ID token and use the isPlatformServer or isPlatformBrowser methods from the @angular/common npm package to check on which platform your application is currently running:
+
+
+
+import { Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+export class CheckPlatformComponent {
+  isBrowser: boolean;
+  
+  constructor( @Inject(PLATFORM_ID) platformId: any) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+}  
+
+How to increase speed of rendering the application ?
+
+# Pre-rendering
+
+
+npm run prerender
+
+- will generate 2 files under /browser folder.
+- index.html => has non-empty <app-root>
+- index.original.html => has empty <app-root>
+
+In index.html file,
+
+All component templates and styles have been prerendered in the main HTML file, meaning we can view our application on a browser even without JavaScript enabled!
+
+
+
+npm run serve:ssr
+
+even when javascript is disabled, the page is rendering the dynamic contents. Hurrey!
+
+The application is pre-rendered.
+
+
+
+Now, enable the Javascript.
+
+The application makes one HTTP request for the browser-rendered version and another for the SSR application because both versions have a different state. We can prevent the previous behavior by sharing the state between the server and the browser. More specifically, we can transfer the state of the server to the browser using a special-purpose Angular module of the Angular Universal library called TransferHttpCacheModule.
+
+
+To install TransferHttpCacheModule in our GitHub portfolio application, follow these steps:
+
+1. import { TransferHttpCacheModule } from '@nguniversal/common'; in app.module.ts
+
+after adding in import: [] of ngModules, run
+
+npm run prerender
+
+and 
+
+npm run serve:ssr
+
+
+# For SEO
+
+
+import { Meta, Title } from '@angular/platform-browser';
+
+constructor(private githubService: GithubService, private titleService: Title, private meta: Meta) {}
+
+
+this.titleService.setTitle('GitHub portfolio app');
+this.meta.addTags([
+  {
+    name: 'description',
+    content: `${this.username}'s GitHub portfolio`
+  },
+  {
+    name: 'author',
+    content: this.username
+  }
+]);
+
+
+Questions to ask yourself:
+
+How do we subscribe to an observable in the template of a component?
+What command do we use to install Angular Universal?
+How can we differentiate programmatically between browser and server platforms?
+What command generates a prerendered version of an SSR application?
+What Angular module do we use to transfer the state from the server to the browser?
+What Angular service do we use to set the title of an Angular application?
+What Angular service do we use to set meta tags in an Angular application?
